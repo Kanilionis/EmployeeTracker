@@ -171,29 +171,38 @@ inquirer.prompt([
 
       function removeEmployee() {
         connection.query(
-          "SELECT * FROM employee",
+          "SELECT * FROM employee", 
           function(err,res){
             if(err) throw err;
           inquirer.prompt([
           {
             type: "list",
             message: "Which employee would you like to remove?",
-            name: "removeEmployee",
+            name: "removedEmployee",
             choices: function() {
               var employeeArray = [];
               for(var i=0; i<res.length; i++){
-                employeeArray.push(res[i].first_name + " " + last_name)
+                employeeArray.push(res[i].id + " | " + res[i].first_name + " " + res[i].last_name)
+                console.log(employeeArray)
               }
               return employeeArray
             }},
         
-          ]).then(function(err, res) {
-          if (err) throw err;
-          console.log(res.affectedRows);
+          ]).then(
+            function(answer) {
+          var removedEmployee = answer.removedEmployee.split(" ");
+          console.log(removedEmployee)
+          connection.query(
+            "DELETE FROM employee WHERE id=?", removedEmployee,
+            function(err,res){
+              console.table(res)
+            }
+          )
           // Call readProducts AFTER the DELETE completes
           readTable();
           })
-      })}
+      }
+      )}
 
   
       // {
@@ -227,48 +236,78 @@ function updateEmployeeRole() {
     inquirer.prompt([
       {
         type: "list",
-        message: "Whose roll would you like to update?",
+        message: "Whose role would you like to update?",
         name: "updateEmployee",
         choices: function() {
           var employeeArray = [];
           for(var i=0; i<res.length; i++){
-            employeeArray.push(res[i].first_name + " " + res[i].last_name)
+            employeeArray.push(res[i].id + " | " + res[i].first_name + " " + res[i].last_name)
           }
           return employeeArray;
       }},
-      {
-        type: "list",
-        message: "What is their new role?",
-        name: "newRole",
-        choices: function() {
-          var newRoleArray = [];
-          for(var i=0; i<res.length; i++){
-            newRoleArray.push(res[i].role_id)
-          }
-          return newRoleArray;
-      }
-    }
-    ]).then(function (response){
-      var updatedRole;
-      for(var i=0; i<res.length; i++){
-        if(res[i].id === response.choice){
-          updatedRole = res[i]
-        }
-        connection.query(
-          "UPDATE employee SET ?",
-          {
-            role_id: response.newRole
-          },
-        function(err){
-            if(err) throw err;
-            console.log("updated employee");
-            start()
-          }
-        )
-      }
-      })
-    })}
+    //   {
+    //     type: "list",
+    //     message: "What is their new role?",
+    //     name: "newRole",
+    //     choices: function() {
+    //       var newRoleArray = [];
+    //       for(var i=0; i<res.length; i++){
+    //         newRoleArray.push(res[i].role_id)
+    //       }
+    //       return newRoleArray;
+    //   }
+    // }
+    ]).then(function (res){
+      updateRole(res.updateEmployee)
+    })})}
 
+
+    function updateRole(answer){
+      var newAnswer = answer.split(" ")
+      console.log(newAnswer)
+    
+      // res.updateEmployee = answer
+      connection.query(
+        "SELECT * FROM roles",
+        function(err,res){
+          if (err) throw err;
+        // first object is what we are changing the data to, second object is telling us what part of the database we are changing
+        // anywhere there is "Rocky Road", the quantity will be changed to 100
+        inquirer.prompt([
+          {
+            type: "list",
+            message: "What is their new role?",
+            name: "newRole",
+            choices: function() {
+              var newRoleArray = [];
+              for(var i=0; i<res.length; i++){
+                newRoleArray.push(res[i].id + " | " + res[i].title)
+              }
+              return newRoleArray;
+          }},
+        ]).then(function (res){
+          console.log(res);
+          connection.query(
+            "UPDATE employee SET ? WHERE ?",
+            [
+              {
+                role_id: res.newRole.charAt(0)
+              },
+              {
+                id: newAnswer[0]
+              }
+            ]
+          )
+            console.log(res)
+        })
+
+    })}
+      // var updatedRole;
+      // for(var i=0; i<res.length; i++){
+      //   if(res[i].id === response.choice){
+      //     updatedRole = res[i]
+      //   }
+        
 //       .then(function(response){
   // "UPDATE employee SET ? WHERE"
       
@@ -308,7 +347,8 @@ function removeRole(){
 // READ
 
 function readTable() {
-  connection.query("SELECT * FROM employeetracker_db", function(err, res) {
+  // 3 different query statements - one for employee, roles, dept
+  connection.query("SELECT * FROM employee AND roles AND department", function(err, res) {
     if (err) throw err;
     // Log all results of the SELECT statement
     console.table(res);
