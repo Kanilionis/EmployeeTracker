@@ -38,7 +38,8 @@ inquirer.prompt([
       "View All Departments",
       "Add Department",
       "Remove Department",
-      "View Total Utilized Budget"
+      "View Total Utilized Budget",
+      "End App"
     ]}
     ]).then(function(response){
       console.log(response)
@@ -69,7 +70,9 @@ inquirer.prompt([
       break;
       case "Remove Department": removeDepartment();
       break;
-      case "View Total Utilized Budget": viewBudget()// add all salaries together
+      case "View Total Utilized Budget": viewBudget();// add all salaries together
+      break;
+      case "End App": readTable();
       default: start()
       }
     }) 
@@ -89,24 +92,21 @@ inquirer.prompt([
         console.table(res)
       }
     )
+    start()
   }
 
   function viewByDept(){
     connection.query(
-    "SELECT * FROM department"
+      "SELECT employee.first_name, employee.last_name, roles.title, roles.salary, department.dept_id, department.name FROM employee LEFT JOIN roles ON employee.role_id = roles.id LEFT JOIN department ON employee.department_id = department.dept_id",
+      function(err,res){
+        console.table(res)
+      }
+
     )
   }
 
-  // function viewByMgr(){
-
-  // }
-
-  
-
-
 
   function createEmployee() {
-    // var query = 
     connection.query(
       // ? means we want to reference that object, we can also pass in an object already created by using its variable name
       "SELECT * FROM roles",
@@ -134,14 +134,7 @@ inquirer.prompt([
           }
           return roleArray
         }},
-        // {
-        // type: "list",
-        // message: "Who is the employee's manager?",
-        // name: "manager",
-        // choices: [
-        //   // SELECT * FROM employee
-        // ]
-        // }
+        
       ]).then(function(response) {
         var chosenRole;
         for(var i=0; i<res.length; i++){
@@ -204,24 +197,6 @@ inquirer.prompt([
       }
       )}
 
-  
-      // {
-      //   type: "list",
-      //   message: "Who is this employee's manager?",
-      //   name: "manager",
-      //   choices: function(){
-      //     "SELECT first_name AND last_name FROM employee", 
-      //     function(err,res){
-      //       if(err) throw err;
-      //       console.log(res)
-      //     // var managerArray = [];
-      //     // for(var i=0; i<res.length; i++){
-      //     //   managerArray.push(res[i].firstName + lastName)
-      //     //   }
-      //   }}
-        
-      // },
-  
 
 
 // UPDATE
@@ -231,8 +206,6 @@ function updateEmployeeRole() {
     "SELECT * FROM employee",
     function(err,res){
       if (err) throw err;
-    // first object is what we are changing the data to, second object is telling us what part of the database we are changing
-    // anywhere there is "Rocky Road", the quantity will be changed to 100
     inquirer.prompt([
       {
         type: "list",
@@ -245,18 +218,6 @@ function updateEmployeeRole() {
           }
           return employeeArray;
       }},
-    //   {
-    //     type: "list",
-    //     message: "What is their new role?",
-    //     name: "newRole",
-    //     choices: function() {
-    //       var newRoleArray = [];
-    //       for(var i=0; i<res.length; i++){
-    //         newRoleArray.push(res[i].role_id)
-    //       }
-    //       return newRoleArray;
-    //   }
-    // }
     ]).then(function (res){
       updateRole(res.updateEmployee)
     })})}
@@ -272,7 +233,6 @@ function updateEmployeeRole() {
         function(err,res){
           if (err) throw err;
         // first object is what we are changing the data to, second object is telling us what part of the database we are changing
-        // anywhere there is "Rocky Road", the quantity will be changed to 100
         inquirer.prompt([
           {
             type: "list",
@@ -302,26 +262,7 @@ function updateEmployeeRole() {
         })
 
     })}
-      // var updatedRole;
-      // for(var i=0; i<res.length; i++){
-      //   if(res[i].id === response.choice){
-      //     updatedRole = res[i]
-      //   }
-        
-//       .then(function(response){
-  // "UPDATE employee SET ? WHERE"
       
-      
-//     function(err, res) {
-//       if (err) throw err;
-//       console.log(res.affectedRows);
-//       // Call deleteProduct AFTER the UPDATE completes
-//       removeEmployee();
-//     }
-//     // logs the actual query being run
-//     console.log(query.sql);
-// }
-
 
 
 function viewAllRoles(){
@@ -347,11 +288,17 @@ function removeRole(){
 // READ
 
 function readTable() {
+  console.log("all done")
   // 3 different query statements - one for employee, roles, dept
-  connection.query("SELECT * FROM employee AND roles AND department", function(err, res) {
-    if (err) throw err;
-    // Log all results of the SELECT statement
-    console.table(res);
-    connection.end();
-  });
+  // connection.query("SELECT * FROM employee AND roles AND department", function(err, res) {
+  //   if (err) throw err;
+  //   // Log all results of the SELECT statement
+  //   console.table(res);
+  //   connection.end();
+  // });
+}
+
+function endApp(){
+  console.log("all done")
+  connection.end()
 }
