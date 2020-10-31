@@ -27,8 +27,8 @@ CREATE TABLE employee (
   -- refers to role the employee has - match id in role table
   role_id INT NOT NULL,
   department_id INT,
-  INDEX roles_ind(role_id)
-  -- CONSTRAINT fk_role FOREIGN KEY(role_id) REFERENCES role(id) ON DELETE CASCADE
+  INDEX roles_ind(role_id),
+  CONSTRAINT fk_role FOREIGN KEY(role_id) REFERENCES roles(id) ON DELETE CASCADE
   -- refers to the manager assigned to this employee
  --  manager_id INT
   -- constraint - manager id matches employee id
@@ -49,19 +49,22 @@ SELECT * FROM department;
 SELECT * FROM roles;
 SELECT * FROM employee;
 
-SELECT employee.first_name, employee.last_name, roles.title, roles.salary, department.id
-FROM employee
-LEFT JOIN roles ON employee.role_id = roles.id
-LEFT JOIN department ON employee.department_id = department.id;
+-- SELECT employee.first_name, employee.last_name, roles.title, roles.salary, department.id, department.name
+-- FROM employee
+-- LEFT JOIN roles ON employee.role_id = roles.id
+-- LEFT JOIN department ON employee.department_id = department.id;
 
-SELECT department.name, roles.title
-FROM roles
-LEFT JOIN department ON roles.department_id = department.id;
+-- SELECT department.name, roles.title
+-- FROM roles
+-- LEFT JOIN department ON roles.department_id = department.id;
 
-SELECT department.name, roles.title, roles.salary
-FROM roles
-LEFT JOIN department ON roles.department_id = department.id;
+-- SELECT department.name, roles.title, roles.salary
+-- FROM roles
+-- LEFT JOIN department ON roles.department_id = department.id;
 
+SELECT employee.first_name, employee.last_name, roles.title, roles.salary, department.id, department.name
+FROM department
+INNER JOIN employee ON department.id = employee.role_id
 
 
 

@@ -27,7 +27,7 @@ inquirer.prompt([
     choices: [
       "View All Employees",
       "View All Employees By Department",
-      "View All Employees By Manager",
+      // "View All Employees By Manager",
       "Add Employee",
       "Remove Employee",
       "Update Employee Role",
@@ -72,7 +72,7 @@ inquirer.prompt([
       break;
       case "View Total Utilized Budget": viewBudget();// add all salaries together
       break;
-      case "End App": readTable();
+      case "End App": endApp();
       default: start()
       }
     }) 
@@ -97,7 +97,7 @@ inquirer.prompt([
 
   function viewByDept(){
     connection.query(
-      "SELECT employee.first_name, employee.last_name, roles.title, roles.salary, department.dept_id, department.name FROM employee LEFT JOIN roles ON employee.role_id = roles.id LEFT JOIN department ON employee.department_id = department.dept_id",
+      "SELECT employee.first_name, employee.last_name, roles.title, department.dept_id, department.name FROM employee LEFT JOIN roles ON employee.role_id = roles.id LEFT JOIN department ON employee.department_id = department.dept_id",
       function(err,res){
         console.table(res)
       }
@@ -106,96 +106,94 @@ inquirer.prompt([
   }
 
 
-  function createEmployee() {
-    connection.query(
-      // ? means we want to reference that object, we can also pass in an object already created by using its variable name
-      "SELECT * FROM roles",
-      function(err,res){
-        if (err) throw err;
-    inquirer.prompt([
-        {
-        type: "input",
-        message: "What is the employee's first name?",
-        name: "firstName",
-        },
-        {
-        type: "input",
-        message: "What is the employee's last name?",
-        name: "lastName",
-        },
-        {
-        type: "list",
-        message: "What is the employee's role?",
-        name: "role",
-        choices: function() {
-          var roleArray = [];
-          for(var i=0; i<res.length; i++){
-            roleArray.push(res[i].title)
-          }
-          return roleArray
-        }},
-        
-      ]).then(function(response) {
-        var chosenRole;
-        for(var i=0; i<res.length; i++){
-          // if this matches what is in the table, then chosenRole will contain all answers
-          if(res[i].title === response.role){
-            chosenRole = res[i]
-          }
+function createEmployee() {
+  connection.query(
+  // ? means we want to reference that object, we can also pass in an object already created by using its variable name
+  "SELECT * FROM roles",
+  function(err,res){
+      if (err) throw err;
+  inquirer.prompt([
+    {
+    type: "input",
+    message: "What is the employee's first name?",
+    name: "firstName",
+    },
+    {
+    type: "input",
+    message: "What is the employee's last name?",
+    name: "lastName",
+    },
+    {
+    type: "list",
+    message: "What is the employee's role?",
+    name: "role",
+    choices: function() {
+      var roleArray = [];
+      for(var i=0; i<res.length; i++){
+        roleArray.push(res[i].title)
+      }
+      return roleArray
+      }},
+      
+    ]).then(function(response) {
+      var chosenRole;
+      for(var i=0; i<res.length; i++){
+        // if this matches what is in the table, then chosenRole will contain all answers
+        if(res[i].title === response.role){
+          chosenRole = res[i]
         }
-        connection.query(
-          "INSERT INTO employee SET ?",
-          [
-            {
-              first_name: response.firstName,
-              last_name: response.lastName,
-              role_id: chosenRole.id
-            }
-          ],
-          function(err){
-            if(err) throw err;
-            console.log("added employee successfully")
-            start()
-          }
-        )
-        })
+    }
+    connection.query(
+      "INSERT INTO employee SET ?",
+      [
+      {
+      first_name: response.firstName,
+      last_name: response.lastName,
+      role_id: chosenRole.id
+      }
+      ],
+      function(err){
+        if(err) throw err;
+        console.log("added employee successfully")
+        start()
+        }
+      )
       })
-      }
+    })
+    }
 
-      function removeEmployee() {
-        connection.query(
-          "SELECT * FROM employee", 
-          function(err,res){
-            if(err) throw err;
-          inquirer.prompt([
-          {
-            type: "list",
-            message: "Which employee would you like to remove?",
-            name: "removedEmployee",
-            choices: function() {
-              var employeeArray = [];
-              for(var i=0; i<res.length; i++){
-                employeeArray.push(res[i].id + " | " + res[i].first_name + " " + res[i].last_name)
-                console.log(employeeArray)
-              }
-              return employeeArray
-            }},
-        
-          ]).then(
-            function(answer) {
-          var removedEmployee = answer.removedEmployee.split(" ");
-          console.log(removedEmployee)
-          connection.query(
-            "DELETE FROM employee WHERE id=?", removedEmployee,
-            function(err,res){
-              console.table(res)
-            }
-          )
-          // Call readProducts AFTER the DELETE completes
-          readTable();
-          })
+function removeEmployee() {
+  connection.query(
+    "SELECT * FROM employee", 
+    function(err,res){
+      if(err) throw err;
+    inquirer.prompt([
+      {
+      type: "list",
+      message: "Which employee would you like to remove?",
+      name: "removedEmployee",
+      choices: function() {
+        var employeeArray = [];
+        for(var i=0; i<res.length; i++){
+          employeeArray.push(res[i].id + " | " + res[i].first_name + " " + res[i].last_name)
+          console.log(employeeArray)
+        }
+        return employeeArray
+      }},
+    ]).then(
+      function(answer) {
+    var removedEmployee = answer.removedEmployee.split(" ");
+    console.log(removedEmployee)
+    connection.query(
+      "DELETE FROM employee WHERE id=?", removedEmployee,
+      function(err,res){
+        console.table(res)
       }
-      )}
+    )
+    readTable();
+    })
+    }
+    )}
 
 
 
@@ -208,74 +206,134 @@ function updateEmployeeRole() {
       if (err) throw err;
     inquirer.prompt([
       {
-        type: "list",
-        message: "Whose role would you like to update?",
-        name: "updateEmployee",
-        choices: function() {
-          var employeeArray = [];
-          for(var i=0; i<res.length; i++){
-            employeeArray.push(res[i].id + " | " + res[i].first_name + " " + res[i].last_name)
-          }
-          return employeeArray;
+      type: "list",
+      message: "Whose role would you like to update?",
+      name: "updateEmployee",
+      choices: function() {
+        var employeeArray = [];
+        for(var i=0; i<res.length; i++){
+          employeeArray.push(res[i].id + " | " + res[i].first_name + " " + res[i].last_name)
+        }
+        return employeeArray;
       }},
     ]).then(function (res){
       updateRole(res.updateEmployee)
     })})}
 
-
-    function updateRole(answer){
-      var newAnswer = answer.split(" ")
-      console.log(newAnswer)
-    
-      // res.updateEmployee = answer
+function updateRole(answer){
+  var newAnswer = answer.split(" ")
+  console.log(newAnswer)
+  // res.updateEmployee = answer
+  connection.query(
+    "SELECT * FROM roles",
+    function(err,res){
+      if (err) throw err;
+    // first object is what we are changing the data to, second object is telling us what part of the database we are changing
+    inquirer.prompt([
+      {
+      type: "list",
+      message: "What is their new role?",
+      name: "newRole",
+      choices: function() {
+        var newRoleArray = [];
+        for(var i=0; i<res.length; i++){
+          newRoleArray.push(res[i].id + " | " + res[i].title)
+        }
+        return newRoleArray;
+      }},
+    ]).then(function (res){
+      console.log(res);
       connection.query(
-        "SELECT * FROM roles",
-        function(err,res){
-          if (err) throw err;
-        // first object is what we are changing the data to, second object is telling us what part of the database we are changing
-        inquirer.prompt([
-          {
-            type: "list",
-            message: "What is their new role?",
-            name: "newRole",
-            choices: function() {
-              var newRoleArray = [];
-              for(var i=0; i<res.length; i++){
-                newRoleArray.push(res[i].id + " | " + res[i].title)
-              }
-              return newRoleArray;
-          }},
-        ]).then(function (res){
-          console.log(res);
-          connection.query(
-            "UPDATE employee SET ? WHERE ?",
-            [
-              {
-                role_id: res.newRole.charAt(0)
-              },
-              {
-                id: newAnswer[0]
-              }
-            ]
-          )
-            console.log(res)
-        })
-
-    })}
+        "UPDATE employee SET ? WHERE ?",[
+        {
+        role_id: res.newRole.charAt(0)
+        },
+        {
+        id: newAnswer[0]
+        }
+        ])
+      console.log(res)
+      })
+  })}
       
 
-
 function viewAllRoles(){
-
-}
-
-function createRole(){
-
+connection.query(
+  "SELECT * FROM roles",
+  function(err,res){
+    if(err) throw err;
+    console.table(res)
+  })
 }
 
 function viewAllDepts(){
-
+connection.query(
+  "SELECT * FROM department",
+  function(err,res){
+    if(err) throw err;
+    console.table(res)
+  })
 }
+
+function createRole(){
+  connection.query(
+    // ? means we want to reference that object, we can also pass in an object already created by using its variable name
+    "SELECT * FROM department",
+    function(err,res){
+        if (err) throw err;
+    inquirer.prompt([
+      {
+      type: "input",
+      message: "What role would you like to create?",
+      name: "newRole",
+      },
+      {
+      type: "input",
+      message: "What is the salary for this role?",
+      name: "addSalary",
+      },
+      {
+      type: "list",
+      message: "What department will this role be a part of?",
+      name: "addDept",
+      choices: function() {
+        var deptArray = [];
+        for(var i=0; i<res.length; i++){
+          deptArray.push(res[i].dept_id + " | " + res[i].name)
+        }
+        return deptArray
+        }},
+        
+      ]).then(function(response) {
+        var addedDept = response.addDept.split(" ")
+        console.log(addedDept);
+        // var chosenDept;
+      //   for(var i=0; i<res.length; i++){
+      //     // if this matches what is in the table, then chosenRole will contain all answers
+      //     if(res[i].name === response.addDept){
+      //       chosenDept = res[i]
+      //     }
+      // }
+      connection.query(
+        "INSERT INTO roles SET ?",
+        [
+        {
+        title: response.newRole,
+        salary: response.addSalary,
+        department_id: response.addDept.charAt(0)
+        }
+        ],
+        function(err){
+          if(err) throw err;
+          console.log("added role successfully"),
+          console.table(res)
+          start()
+          }
+        )
+        })
+      })
+      }
+
 
 // DELETE
 
