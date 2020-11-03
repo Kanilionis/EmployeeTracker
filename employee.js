@@ -130,26 +130,48 @@ function createEmployee() {
     choices: function() {
       var roleArray = [];
       for(var i=0; i<res.length; i++){
-        roleArray.push(res[i].title)
+        roleArray.push(res[i].id + " | " + res[i].title)
       }
       return roleArray
       }},
       
-    ]).then(function(response) {
-      var chosenRole;
-      for(var i=0; i<res.length; i++){
-        // if this matches what is in the table, then chosenRole will contain all answers
-        if(res[i].title === response.role){
-          chosenRole = res[i]
-        }
+    ]).then(function(res) {
+      // var addedRole = res.role.split(" ");
+      // console.log(addedRole);
+      addEmployeeDept(res)
     }
+    )
+  })
+  function addEmployeeDept(answer){
+    console.log(answer)
+    connection.query(
+      "SELECT * FROM department",
+      function(err,res){
+        if(err) throw err;
+      inquirer.prompt([
+        {
+        type: "list",
+        message: "What department is this role in?",
+        name: "newDept",
+        choices: function(){
+          var newDeptArray = [];
+          for(var i=0; i<res.length; i++){
+            newDeptArray.push(res[i].dept_id + " | " + res[i].name)
+          }
+          return newDeptArray;
+        }}
+      ]).then(function (res){
+        console.log(res)
+        // var addedNewDept = response.newDept.split(" ")
+        // console.log(addedNewDept);
     connection.query(
       "INSERT INTO employee SET ?",
       [
       {
-      first_name: response.firstName,
-      last_name: response.lastName,
-      role_id: chosenRole.id
+      first_name: answer.firstName,
+      last_name: answer.lastName,
+      role_id: answer.role.charAt(0),
+      department_id: res.newDept.charAt(0),
       }
       ],
       function(err){
@@ -158,9 +180,10 @@ function createEmployee() {
         start()
         }
       )
-      })
-    })
-    }
+      }
+    )
+  })}}
+
 
 function removeEmployee() {
   connection.query(
@@ -243,18 +266,44 @@ function updateRole(answer){
       }},
     ]).then(function (res){
       console.log(res);
+      updatedDept(res)
+    })})
+
+function updatedDept(answer){
+  console.log(answer)
+      connection.query(
+        "SELECT * FROM department",
+        function (err,res){
+          if(err) throw err;
+        inquirer.prompt([
+          {
+          type: "list",
+          message: "What department is this role in?",
+          name: "newDept",
+          choices: function(){
+            var newDeptArray = [];
+            for(var i=0; i<res.length; i++){
+              newDeptArray.push(res[i].dept_id + " | " + res[i].name)
+            }
+            return newDeptArray;
+          }}
+        ]).then(function (response){
+          console.log(response)
+
+
       connection.query(
         "UPDATE employee SET ? WHERE ?",[
         {
-        role_id: res.newRole.charAt(0)
+        role_id: answer.newRole.charAt(0),
+        department_id: response.newDept.charAt(0)
         },
         {
-        id: newAnswer[0]
+        id: newAnswer[0],
         }
         ])
       console.log(res)
       })
-  })}
+  })}}
       
 
 function viewAllRoles(){
