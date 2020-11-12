@@ -16,7 +16,7 @@ connection.connect(function(err) {
   // start()
 });
 
-start()
+// start()
 
 function start(){
 inquirer.prompt([
@@ -103,6 +103,7 @@ inquirer.prompt([
       }
 
     )
+    start()
   }
 
 
@@ -213,7 +214,7 @@ function removeEmployee() {
         console.table(res)
       }
     )
-    readTable();
+    start()
     })
     }
     )}
@@ -303,6 +304,7 @@ function updatedDept(answer){
         ])
       console.log(res)
       })
+      start()
   })}}
       
 
@@ -313,6 +315,7 @@ connection.query(
     if(err) throw err;
     console.table(res)
   })
+  start()
 }
 
 function viewAllDepts(){
@@ -322,6 +325,7 @@ connection.query(
     if(err) throw err;
     console.table(res)
   })
+  start()
 }
 
 function createRole(){
@@ -381,6 +385,7 @@ function createRole(){
         )
         })
       })
+      start()
       }
 
 
@@ -389,21 +394,71 @@ function createRole(){
 
 
 function removeRole(){
+  connection.query(
+    // ? means we want to reference that object, we can also pass in an object already created by using its variable name
+    "SELECT * FROM roles",
+    function(err,res){
+        if (err) throw err;
+    inquirer.prompt([
+      {
+      type: "list",
+      message: "Which role would you like to remove?",
+      name: "remRole",
+      choices: function() {
+        var roleArray = [];
+        for(var i=0; i<res.length; i++){
+          roleArray.push(res[i].id + " | " + res[i].title)
+        }
+        return roleArray
+        }},
+        
+      ]).then(function(response) {
+        var remRole = response.remRole.split(" ");
+        console.log(remRole)
+        connection.query(
+          "DELETE FROM roles WHERE id=?", remRole,
+          function(err,res){
+            console.table(res)
+          }
+        )
+        start()
+        })
+})
+}
+function removeDepartment(){
+  connection.query(
+    // ? means we want to reference that object, we can also pass in an object already created by using its variable name
+    "SELECT * FROM department",
+    function(err,res){
+        if (err) throw err;
+    inquirer.prompt([
+      {
+      type: "list",
+      message: "Which department would you like to remove?",
+      name: "remDept",
+      choices: function() {
+        var deptArray = [];
+        for(var i=0; i<res.length; i++){
+          deptArray.push(res[i].dept_id + " | " + res[i].name)
+        }
+        return deptArray
+        }},
+        
+      ]).then(function(response) {
+        var remDept = response.remDept.split(" ");
+        console.log(remDept)
+        connection.query(
+          "DELETE FROM department WHERE id=?", remDept,
+          function(err,res){
+            console.table(res)
+          }
+        )
+        start()
+        })
+})
 
 }
 
-// READ
-
-function readTable() {
-  console.log("all done")
-  // 3 different query statements - one for employee, roles, dept
-  // connection.query("SELECT * FROM employee AND roles AND department", function(err, res) {
-  //   if (err) throw err;
-  //   // Log all results of the SELECT statement
-  //   console.table(res);
-  //   connection.end();
-  // });
-}
 
 function endApp(){
   console.log("all done")
