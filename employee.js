@@ -16,7 +16,7 @@ connection.connect(function(err) {
   // start()
 });
 
-// start()
+start()
 
 function start(){
 inquirer.prompt([
